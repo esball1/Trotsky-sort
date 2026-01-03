@@ -14,7 +14,7 @@ class TrotskySort:
 
         for start in range(0, n, self.block_size):
             end = min(start + self.block_size, n)
-            if end - start > 1:  # Garante que o bloco tenha pelo menos 2 elementos
+            if end - start > 1: 
                 disorder = self._local_disorder(start, end)
                 if disorder > self.disorder_threshold:
                     self._local_reorder(start, end)
@@ -33,7 +33,6 @@ class TrotskySort:
         return disorder / total
 
     def _local_reorder(self, start, end):
-        # Implementação do insertion sort no intervalo [start, end)
         for i in range(start + 1, end):
             key = self.data[i]
             j = i - 1
