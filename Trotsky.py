@@ -1,53 +1,58 @@
-def local_insertion_sort(block):
-    for i in range(1, len(block)):
-        key = block[i]
-        j = i - 1
-        while j >= 0 and block[j] > key:
-            block[j + 1] = block[j]
-            j -= 1
-        block[j + 1] = key
+class TrotskySort:
+    def __init__(self, block_size=16, disorder_threshold=0.2):
+        self.data = []
+        self.block_size = block_size
+        self.disorder_threshold = disorder_threshold
 
+    def insert(self, value):
+        self.data.append(value)
 
-def trotsky_sort(data, block_size=32):
-    n = len(data)
+    def revolution_step(self):
+        n = len(self.data)
+        if n < 2:
+            return
 
-    for i in range(0, n, block_size):
-        end = min(i + block_size, n)
-        block = data[i:end]
-        local_insertion_sort(block)
-        data[i:end] = block
+        for start in range(0, n, self.block_size):
+            end = min(start + self.block_size, n)
+            if end - start > 1:  # Garante que o bloco tenha pelo menos 2 elementos
+                disorder = self._local_disorder(start, end)
+                if disorder > self.disorder_threshold:
+                    self._local_reorder(start, end)
 
-    current_size = block_size
-    while current_size < n:
-        for start in range(0, n, 2 * current_size):
-            mid = start + current_size
-            end = min(start + 2 * current_size, n)
+    def _local_disorder(self, start, end):
+        if end - start < 2:
+            return 0.0
 
-            left = data[start:mid]
-            right = data[mid:end]
+        disorder = 0
+        total = end - start - 1
 
-            i = j = 0
-            k = start
+        for i in range(start, end - 1):
+            if self.data[i] > self.data[i + 1]:
+                disorder += 1
 
-            while i < len(left) and j < len(right):
-                if left[i] <= right[j]:
-                    data[k] = left[i]
-                    i += 1
-                else:
-                    data[k] = right[j]
-                    j += 1
-                k += 1
+        return disorder / total
 
-            while i < len(left):
-                data[k] = left[i]
-                i += 1
-                k += 1
+    def _local_reorder(self, start, end):
+        # Implementação do insertion sort no intervalo [start, end)
+        for i in range(start + 1, end):
+            key = self.data[i]
+            j = i - 1
+            while j >= start and self.data[j] > key:
+                self.data[j + 1] = self.data[j]
+                j -= 1
+            self.data[j + 1] = key
 
-            while j < len(right):
-                data[k] = right[j]
-                j += 1
-                k += 1
+    def snapshot(self):
+        return list(self.data)
 
-        current_size *= 2
+    def sorted_prefix(self):
+        if not self.data:
+            return []
 
-    return data
+        prefix = [self.data[0]]
+        for i in range(1, len(self.data)):
+            if self.data[i] >= self.data[i - 1]:
+                prefix.append(self.data[i])
+            else:
+                break
+        return prefix
